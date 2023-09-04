@@ -1,0 +1,7 @@
+defVar p 10
+defProc putCB (c, b)
+{
+	drop(p) ;
+	letGo (b) ;
+	walk(c)
+}

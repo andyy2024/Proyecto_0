@@ -1,0 +1,4 @@
+defVar n 0
+defVar x 0
+defVar y 0
+defVar one 0
