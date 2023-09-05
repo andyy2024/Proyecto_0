@@ -1,0 +1,22 @@
+defVar nom 0
+defVar x 0
+defVar y 0
+defVar one 0
+defProc putCB (c , b )
+{
+drop( c ) ;
+letGo ( b ) ;
+walk( nom )
+}
+defProc goNorth ()
+{
+wh i le can(walk(1 , north ) ) { walk(1 , north ) }
+}
+defProc goWest ()
+{
+i f can(walk(1 , west ) ) { walk(1 , west ) ; goWest () } e l s e { nop () }
+}
+{
+jump (3 ,3) ;
+putCB (2 ,1)
+}
