@@ -727,7 +727,7 @@ fileInfo.nativeProc = fileInfo.procedures
 #           CONSOLE
 #---------------------------------
 
-Continue = False
+Continue = True
 print("Hi! i'm Kevin, i'll help you check your file syntax")
 
 while Continue:
@@ -737,9 +737,9 @@ while Continue:
     print("\nEnter 0 to leave\n\n")
 
 
-file_path = "ejemplo2.txt"
+file_path = "Var_Declaration.txt"
 
-print(verifyFile(file_path))
+#print(verifyFile(file_path))
 
 
 
