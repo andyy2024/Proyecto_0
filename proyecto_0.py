@@ -731,10 +731,19 @@ Continue = True
 print("Hi! i'm Kevin, i'll help you check your file syntax")
 
 while Continue:
-    fileName = input("Enter the name of the file you'd like to test: ")
+    fileName = input("\nEnter the name of the file you'd like to test: ")
     isItCorrect = verifyFile(fileName)
+    print("\n----------------------------------------------------")
     print(isItCorrect)
-    print("\nEnter 0 to leave\n\n")
+    answer = input("\nEnter 0 to leave or 1 to test another file:")
+    if answer == "0":
+        break
+    elif answer == "1":
+        continue
+    else:
+        print("\ninvalid answer")
+        break
+
 
 
 file_path = "Var_Declaration.txt"
