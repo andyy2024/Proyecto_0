@@ -2,3 +2,13 @@ defVar n 0
 defVar x 0
 defVar y 0
 defVar one 0
+
+{
+jump (1 ,1) ;
+repeat 300 times {
+	jump (1,2) ;
+	jump (1,3) ;
+	walk( 2) ;
+	nop ()
+				}
+}

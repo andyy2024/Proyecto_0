@@ -2,8 +2,8 @@ class fileInfo:
      procedures = {}
      variables = {}
      nativeProc = {}
-
-
+     currentProcName = None
+     
 #------------- Syntaxis del lenguaje ------------------
 integers = ["1","2","3","4","5","6","7","8","9","0"]
 controlStructures = ["if", "while", "repeat"]
@@ -25,11 +25,8 @@ def verifyFile(fileName):
     secondState = None #Posibles estados: "Check_var"
     currentProcName = None
     variables = fileInfo.variables
-    variables = updateVariables(variables)
     procedures = fileInfo.procedures
-    procedures = updateProcedures(procedures)
 
-    fileInfo.nativeProc = procedures
     calledProcVariables = {}
     
 
@@ -47,7 +44,15 @@ def verifyFile(fileName):
         if currentState == None:
 
             unkownState = shortTimeMemory
-        
+
+            if unkownState in fileInfo.procedures.keys():
+                calledProc = unkownState
+                calledProcVariables[calledProc] = 0
+                secondState = "Check_var"
+                currentState = "Simple_command"
+                shortTimeMemory = ""
+                continue
+
             if unkownState == "defVar":
                 currentState = "Var"
                 shortTimeMemory = ""
@@ -76,10 +81,9 @@ def verifyFile(fileName):
             if character in integers:
                 newVarible = shortTimeMemory
                 integer = checkForIntegerAhead(wholeText, i-1)
-                print(integer)
+
                 if integer[1]:
                     variables[newVarible] = integer[0]
-                    print(variables)
                     shortTimeMemory = ""
                     currentState = None
                     i = integer[1] # to skip the number since we already read it with checkForIntegerAhead() 
@@ -98,6 +102,7 @@ def verifyFile(fileName):
                 shortTimeMemory = ""
                 #para la siguiente etapa:
                 currentProcName = newProcedure
+                fileInfo.currentProcName = newProcedure
                 currentState = "Proc_parameters"
                 continue
         
@@ -108,13 +113,15 @@ def verifyFile(fileName):
 
             if character == ",":
                 newParameter = shortTimeMemory
-                procedures[currentProcName].append(newParameter)
+                if newParameter != "":
+                    procedures[currentProcName].append(newParameter)
                 shortTimeMemory = ""
                 continue
 
             if character == ")":
                 newParameter = shortTimeMemory
-                procedures[currentProcName].append(newParameter)
+                if newParameter != "":
+                    procedures[currentProcName].append(newParameter)
                 shortTimeMemory = ""
                 #para la siguiente etapa:
                 currentState = "Command_block"
@@ -135,7 +142,7 @@ def verifyFile(fileName):
                     shortTimeMemory = ""
                     checkError = verifyControlStructure(wholeText, i - 1, controlStructure)
                     if checkError:
-                        i = checkError + 1
+                        i = checkError
                         continue
                     break
 
@@ -178,11 +185,10 @@ def verifyFile(fileName):
                                 variables[calledVarible]
                                 calledProcVariables[calledProc] += 1 
                             
-                            elif (calledVarible in procedures[currentProcName]) or variables[calledVarible]:
+                            elif (calledVarible in procedures[currentProcName]) or ItsaNumber(variables[calledVarible]):
                                 calledProcVariables[calledProc] += 1 
                             
                             numberVariblesCalled = calledProcVariables[calledProc]
-
                             if not (minParameters <= numberVariblesCalled <= maxParameters): 
                                 print("The procedure '",calledProc,"' takes at least",minParameters,"parameters and maximum",maxParameters)
                                 break
@@ -193,6 +199,7 @@ def verifyFile(fileName):
                                 break
                             i = checkError[0] + 1 # to skip ";" since we already know its there
                             if checkError[1] == "}":
+                                fileInfo.currentProcName = None
                                 currentState = None
                                 currentProcName = None
                                 continue
@@ -217,10 +224,20 @@ def verifyFile(fileName):
                         break
 
                 if character == "=": #means this is an assignment
+                    calledVarible = shortTimeMemory
+                    shortTimeMemory = ""
                     try:
-                        calledVarible = shortTimeMemory
                         variables[calledVarible]
-                        shortTimeMemory = ""
+                    except Exception as e:
+                        print("Could not find varible", calledVarible)
+                        break
+                
+                    integer = checkForIntegerAhead(wholeText, i)
+
+                    if integer[1]:
+                        variables[calledVarible] = integer[0]
+                        i = integer[1] # to skip the number since we already read it with checkForIntegerAhead() 
+                        
                         checkError = checkForSymbolAhead(wholeText, [";","}"], i)
                         if not checkError[0]:
                             print("Seems you forgot to add ; or }",)
@@ -230,15 +247,81 @@ def verifyFile(fileName):
                             currentState = None
                             secondState = None
                         continue
+
+                    else:
+                        print("Integer",integer[0],"is not valid")
+                        break
+            
+                if character == "}":
+                    currentState = None
+                    currentProcName = None
+                    shortTimeMemory = ""
+                    continue
+
+                if character == ";":
+                    shortTimeMemory = ""
+                    continue
+
+                shortTimeMemory += character
+                continue
+        
+        if currentState == "Simple_command":
+            
+            if secondState == "Check_var": # means we are checking varibles called of a procedure
+
+                if character == ",":
+                    try:
+                        calledVarible = shortTimeMemory
+                        shortTimeMemory = ""
+                        if ItsaNumber(calledVarible):
+                            calledProcVariables[calledProc] += 1
+                            continue
+                        if currentProcName == None:
+                            variables[calledVarible]
+                            calledProcVariables[calledProc] += 1 
+                            continue
+                        if (calledVarible in procedures[currentProcName]) or variables[calledVarible]:
+                            calledProcVariables[calledProc] += 1 
+                            continue
+
+                    except Exception as e:
+                        print("Could not find varible", calledVarible)
+                        break
+
+                if character == ")":
+
+                    try:
+                        calledVarible = shortTimeMemory
+                        shortTimeMemory = ""
+                        minParameters = len([x for x in procedures[calledProc] if x != "opt"])
+                        maxParameters = len(procedures[calledProc])
+
+                        if  calledVarible == "":
+                            doNothing = None
+
+                        elif ItsaNumber(calledVarible):
+                            calledProcVariables[calledProc] += 1
+
+                        elif currentProcName == None:
+                            variables[calledVarible]
+                            calledProcVariables[calledProc] += 1 
                         
+                        elif (calledVarible in procedures[currentProcName]) or variables[calledVarible]:
+                            calledProcVariables[calledProc] += 1 
+                        
+                        numberVariblesCalled = calledProcVariables[calledProc]
+
+                        if not (minParameters <= numberVariblesCalled <= maxParameters): 
+                            print("The procedure '",calledProc,"' takes at least",minParameters,"parameters and maximum",maxParameters)
+                            break
+                        
+                        currentState = None
+                        secondState = None
+                        continue
                     except Exception as e:
                         print("Could not find varible", calledVarible)
                         break
                 
-                if character == "}":
-                    shortTimeMemory = ""
-                    continue
-
                 shortTimeMemory += character
                 continue
 
@@ -283,7 +366,7 @@ def if_CS(wholeText, pos):
         return False    
     
     shortTimeMemory = ""
-    pos = checkError + 1
+    pos = checkError
 
     while (pos < len(wholeText)) and (len(shortTimeMemory) < 5):
         character = wholeText[pos]
@@ -420,7 +503,7 @@ def verifyCommandBlock(wholeText, pos):
     variables = fileInfo.variables
     procedures = fileInfo.procedures
     secondState = None
-    currentProcName = None
+    currentProcName = fileInfo.currentProcName
 
     i = pos
     calledProcVariables = {}
@@ -473,7 +556,7 @@ def verifyCommandBlock(wholeText, pos):
                         variables[calledVarible]
                         calledProcVariables[calledProc] += 1 
                     
-                    elif (calledVarible in procedures[currentProcName]) or variables[calledVarible]:
+                    elif (calledVarible in procedures[currentProcName]) or ItsaNumber(variables[calledVarible]) or variables[calledVarible]:
                         calledProcVariables[calledProc] += 1 
                     
                     numberVariblesCalled = calledProcVariables[calledProc]
@@ -513,24 +596,35 @@ def verifyCommandBlock(wholeText, pos):
                 break
 
         if character == "=": #means this is an assignment
+            calledVarible = shortTimeMemory
+            shortTimeMemory = ""
             try:
-                calledVarible = shortTimeMemory
                 variables[calledVarible]
-                shortTimeMemory = ""
-                checkError = checkForSymbolAhead(wholeText, [";","}"], i)
-                if not checkError[0]:
-                    print("Seems you forgot to add ; or }",)
-                    break
-                i = checkError[0] + 1 # to skip ";" since we already know its there
-                if checkError[1] == "}":
-                    currentState = None
-                    secondState = None
-                return i
-                
             except Exception as e:
                 print("Could not find varible", calledVarible)
                 break
         
+            integer = checkForIntegerAhead(wholeText, i)
+
+            if integer[1]:
+                variables[calledVarible] = integer[0]
+                i = integer[1] # to skip the number since we already read it with checkForIntegerAhead() 
+                
+                checkError = checkForSymbolAhead(wholeText, [";","}"], i)
+                if not checkError[0]:
+                    print("Seems you forgot to add ; or }",)
+                    return False
+                i = checkError[0] + 1 # to skip ";" since we already know its there
+                if checkError[1] == "}":
+                    currentState = None
+                    secondState = None
+                    return i
+                continue
+
+            else:
+                print("Integer",integer[0],"is not valid")
+                return False
+
         shortTimeMemory += character
         continue
 
@@ -601,7 +695,6 @@ def ItsaNumber(number):
     except Exception as e:
         return False
 
-
 #---------------------------------
 # FUNCTION TO UPDATE PROCEDURES
 #---------------------------------
@@ -622,8 +715,13 @@ def updateProcedures(procedures):
 
 def updateVariables(variables):
     for direction in directions:
-        variables[direction] = None
+        variables[direction] = 1
     return variables
+
+#Default procedures and varibles initialized
+fileInfo.variables = updateVariables(fileInfo.variables)
+fileInfo.procedures = updateProcedures(fileInfo.procedures)
+fileInfo.nativeProc = fileInfo.procedures
 
 #---------------------------------
 #           CONSOLE
@@ -639,7 +737,7 @@ while Continue:
     print("\nEnter 0 to leave\n\n")
 
 
-file_path = "command_block.txt"
+file_path = "ejemplo2.txt"
 
 print(verifyFile(file_path))
 

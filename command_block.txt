@@ -1,9 +1,16 @@
+defVar nom 5
+
+defProc goNorth ()
 {
-jump (1 ,1) ;
-repeat 300 times {
-	jump (1,2) ;
-	jump (1,3) ;
-	walk( 2) ;
-	nop ()
-				}
+wh i le can(walk(1 , north ) ) { walk(1 , north );nom = 2}
+}
+{
+goNorth () ;
+nom = 2;
+i f can(drop( nom ) )
+{
+drop( nom )
+}
+e l s e { nop () };
+leap (5)
 }

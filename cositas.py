@@ -1,2 +1,3 @@
-print("12345"[1:2])
+if "uw" in "uwu":
+    print("uwu")
 
