@@ -1,26 +1,26 @@
-defVarnom5
+defVar nom 5
 walk(nom)
-defProcgoNorth()
+defProc goNorth()
 {
-whilecan(walk(1,north)){walk(1,north)}
+while can(walk(1,north)){walk(1,north)}
 }
 {
 goNorth();
 nom=2;
-ifcan(drop(nom))
+if can (drop(nom))
 {
-drop(nom)
+drop (nom)
 }
-else{nop()};
+else {nop()};
 leap(5)
 }
 defProcfill()
 {
-whilecan(drop(1)){drop(1)}
+while can(drop(1)){drop(1)}
 }
-defProcsafeWalk(n)
+defProc safeWalk(n)
 {
-ifcan(walk(n)){walk(n)}else{nop()}
+if can(walk(n)){walk(n)}else{nop()}
 }
 {
 jump(1,1);
